@@ -21,11 +21,10 @@ public class CreateAccountTest extends BaseTest {
     }
 
     @Test
-    @Disabled
     public void verifyCreateInvalidAccount() {
         LoginPage  loginPage = new LoginPage(SingletonInstance.getInstance().getDriver());
         AccountPage  accountPage = loginPage.openAccountPage(invalidUser);
         Throwable thrown = assertThrows(WebDriverException.class,  () -> accountPage.getRegisteredUser(invalidUser.getFirstName()));
-        assertNotNull(thrown.getMessage(), "Signed in with invalid credentials");
+        assertNotNull(thrown.getMessage(), "Account created");
     }
 }

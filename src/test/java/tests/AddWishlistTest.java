@@ -1,11 +1,12 @@
-package magentoTest;
+package tests;
 
 import magentoPage.AccountPage;
 import magentoPage.LoginPage;
-import magentoPage.WishlistPage;
 import magentoPage.ProductsPage;
-import org.junit.jupiter.api.Test;
+import magentoPage.WishlistPage;
 import object.product.ProductWishlist;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import utils.singleton.SingletonInstance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,5 +21,9 @@ public class AddWishlistTest extends BaseTest {
         WishlistPage wishlistPage = productsPage.openWishlistPage();
         ProductWishlist productWishlistFromWishList = wishlistPage.getProductFromWishList();
         assertEquals(productWishlistFromWishList, randomProductWishlist, "Product not added to Wishlist");
+    }
+    @AfterEach
+    public void closeChrome() {
+        SingletonInstance.getInstance().quitAll();
     }
 }

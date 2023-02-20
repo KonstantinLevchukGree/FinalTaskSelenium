@@ -1,4 +1,4 @@
-package magentoTest;
+package tests;
 
 import magentoPage.*;
 import object.product.ProductCart;

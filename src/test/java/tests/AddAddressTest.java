@@ -1,4 +1,4 @@
-package magentoTest;
+package tests;
 
 import object.address.Address;
 import magentoPage.AccountPage;

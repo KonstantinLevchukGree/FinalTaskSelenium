@@ -1,4 +1,4 @@
-package magentoTest;
+package tests;
 
 import object.user.User;
 import org.junit.jupiter.api.AfterEach;

@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.openqa.selenium.MutableCapabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -11,6 +12,8 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import utils.property.PropertyUtil;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -36,13 +39,12 @@ public class SingletonInstance {
     public WebDriver getDriver() {
         if (testsData.getProperty("environment").equals("local")) {
             driver = getBrowserDriver(testsData.getProperty("browser"));
-
-
+            driver.manage().window().maximize();
         } else if (testsData.getProperty("environment").equals("remote")) {
             DesiredCapabilities capabilities = new DesiredCapabilities();
             capabilities.setBrowserName(testsData.getProperty("browser"));
             driver = new RemoteWebDriver(new URL(testsData.getProperty("hub.url")), capabilities);
-        } else if (testsData.getProperty("environment").equals("SauceLabs")) {
+        } else if (testsData.getProperty("environment").equals("remoteSauceLabs")) {
             authenticationSauceLab();
             driver = getRemoteWebDriverBrowser(testsData.getProperty("browser"));
         }
@@ -66,7 +68,7 @@ public class SingletonInstance {
     private WebDriver getRemoteWebDriverBrowser(String browser) {
         switch (browser) {
             case "chrome":
-                driver = new RemoteWebDriver(new URL(sauceLab.getProperty("user.url")), setBrowserOptions());
+                driver = new RemoteWebDriver(new URL(sauceLab.getProperty("user.url")), setChromeOptions());
                 break;
             case "firefox":
                 driver = new RemoteWebDriver(new URL(sauceLab.getProperty("user.url")), setFirefoxOptions());
@@ -75,24 +77,26 @@ public class SingletonInstance {
         return driver;
     }
 
-    private DesiredCapabilities setBrowserOptions() {
-        DesiredCapabilities caps = new DesiredCapabilities();
-        caps.setCapability("browserName", chromeEnvironment.getProperty("browser"));
-        caps.setCapability("platform", chromeEnvironment.getProperty("platform"));
-        caps.setCapability("version", chromeEnvironment.getProperty("version"));
-        caps.setCapability("build", chromeEnvironment.getProperty("build"));
-        caps.setCapability("name", getTestAndClassName());
-        return caps;
+    private ChromeOptions setChromeOptions() {
+        ChromeOptions browserOptions = new ChromeOptions();
+        browserOptions.setPlatformName(chromeEnvironment.getProperty("platform"));
+        browserOptions.setBrowserVersion(chromeEnvironment.getProperty("version"));
+        Map<String, Object> sauceOptions = new HashMap<>();
+        sauceOptions.put("build", chromeEnvironment.getProperty("build"));
+        sauceOptions.put("name", getTestAndClassName());
+        browserOptions.setCapability("sauce:options", sauceOptions);
+        return browserOptions;
     }
 
-    private DesiredCapabilities setFirefoxOptions() {
-        DesiredCapabilities caps = new DesiredCapabilities();
-        caps.setCapability("browserName", firefoxEnvironment.getProperty("browser"));
-        caps.setCapability("platform", firefoxEnvironment.getProperty("platform"));
-        caps.setCapability("version", firefoxEnvironment.getProperty("version"));
-        caps.setCapability("build", firefoxEnvironment.getProperty("build"));
-        caps.setCapability("name", getTestAndClassName());
-        return caps;
+    private FirefoxOptions setFirefoxOptions() {
+        FirefoxOptions browserOptions = new FirefoxOptions();
+        browserOptions.setPlatformName(firefoxEnvironment.getProperty("platform"));
+        browserOptions.setBrowserVersion(firefoxEnvironment.getProperty("version"));
+        Map<String, Object> sauceOptions = new HashMap<>();
+        sauceOptions.put("build", firefoxEnvironment.getProperty("build"));
+        sauceOptions.put("name", getTestAndClassName());
+        browserOptions.setCapability("sauce:options", sauceOptions);
+        return browserOptions;
     }
 
     private String getTestAndClassName() {
@@ -100,6 +104,7 @@ public class SingletonInstance {
         String testName = null;
         for (StackTraceElement element : stackTrace
         ) {
+            assert element.getFileName() != null;
             if (element.getFileName().replace(".java", "").trim().endsWith("Test")) {
                 testName = "Test: " + element.getMethodName()
                         + "__Class: " + element.getFileName().replace(".java", "").trim()

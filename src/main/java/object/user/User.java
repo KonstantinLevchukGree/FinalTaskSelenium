@@ -2,6 +2,7 @@ package object.user;
 
 import com.github.javafaker.Faker;
 
+
 import java.util.Objects;
 
 public class User {

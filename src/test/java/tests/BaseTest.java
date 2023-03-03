@@ -1,25 +1,26 @@
 package tests;
 
 import object.user.User;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import testResultUtil.TestResultExtension;
-import utils.singleton.SingletonInstance;
+import utils.singleton.SingletonDriver;
+
 @ExtendWith(TestResultExtension.class)
 
 public class BaseTest {
-    public static User validUser;
-    public static User invalidUser;
+    User validUser;
+    User invalidUser;
 
     @BeforeEach
-    public void initUser() {
-        validUser = new User("valid");
-        invalidUser = new User("invalid");
+    public void init() {
+        validUser = new User().fillUser("valid");
+        invalidUser = new User().fillUser("invalid");
     }
 
-    @AfterEach
-    public void closeChrome() {
-        SingletonInstance.getInstance().quitAll();
+    @AfterAll
+    public static void quitDriver() {
+        SingletonDriver.quitAll();
     }
 }

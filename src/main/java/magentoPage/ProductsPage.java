@@ -5,30 +5,25 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import utils.property.PropertyUtil;
+import utils.singleton.SingletonDriver;
+import utils.webDriverWait.ExplicitWait;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Properties;
 
 public class ProductsPage {
     private WebDriver driver;
     private int random;
     private By gridProducts = By.xpath("//div[contains(@class,'grid products')]//li");
-    private final Properties testData = PropertyUtil.getProperties("testsData.properties");
 
-    public ProductsPage(WebDriver driver) {
-        this.driver = driver;
-        PageFactory.initElements(driver, this);
+    public ProductsPage() {
+        this.driver = SingletonDriver.getInstance();
     }
 
     private List<WebElement> getProductsFromPage() {
-        new WebDriverWait(driver, Duration.ofSeconds(Integer.parseInt(testData.getProperty("explicit.time"))))
-                .until(ExpectedConditions.visibilityOfElementLocated(gridProducts));
-        return driver.findElements(gridProducts);
+        ExplicitWait.getExplicitWait().until(ExpectedConditions.visibilityOfElementLocated(gridProducts));
+        return SingletonDriver.getInstance().findElements(gridProducts);
     }
 
     public ProductWishlist getProductWishlist() {
@@ -39,7 +34,8 @@ public class ProductsPage {
         ProductWishlist productWishlist = new ProductWishlist();
         productWishlist.setName(jacket.findElement(By.xpath(".//strong[contains(@class,'product name')]//a[contains(@class,'product')]"))
                 .getText().trim());
-        productWishlist.setPrice(jacket.findElement(By.xpath(".//span[@class='price']")).getText().trim());
+        productWishlist.setPrice(jacket.findElement(By.xpath(".//span[@class='price']"))
+                .getText().trim());
         return productWishlist;
     }
 
@@ -48,26 +44,26 @@ public class ProductsPage {
         int sizeGrid = products.size();
         int ran = (int) (Math.random() * sizeGrid);
         WebElement jacket = products.get(ran);
-        new Actions(driver)
+        new Actions(SingletonDriver.getInstance())
                 .moveToElement(jacket)
                 .pause(Duration.ofSeconds(1))
                 .moveToElement(jacket.findElement(By.xpath(".//button[contains(@class,'tocart ')]")))
                 .pause(Duration.ofSeconds(1))
                 .click()
                 .perform();
-        return new ProductPage(driver);
+        return new ProductPage();
     }
 
     public WishlistPage openWishlistPage() {
         List<WebElement> jackets = getProductsFromPage();
         WebElement jacket = jackets.get(random);
-        new Actions(driver)
+        new Actions(SingletonDriver.getInstance())
                 .moveToElement(jacket)
                 .pause(Duration.ofSeconds(1))
                 .moveToElement(jacket.findElement(By.xpath(".//a[contains(@class,'towishlist')]")))
                 .pause(Duration.ofSeconds(1))
                 .click()
                 .perform();
-        return new WishlistPage(driver);
+        return new WishlistPage();
     }
 }

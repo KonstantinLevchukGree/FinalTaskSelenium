@@ -1,7 +1,7 @@
 package magentoPage;
 
-import object.address.Address;
 import com.github.javafaker.Faker;
+import object.address.Address;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -9,13 +9,11 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import utils.property.PropertyUtil;
+import utils.singleton.SingletonDriver;
+import utils.webDriverWait.ExplicitWait;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 public class DefaultAddressPage {
     private WebDriver driver;
@@ -33,47 +31,29 @@ public class DefaultAddressPage {
     WebElement countrySelect;
     @FindBy(xpath = "//button[contains(@class,'save')]")
     WebElement saveAddressButton;
-    private final Properties testData = PropertyUtil.getProperties("testsData.properties");
 
-    public DefaultAddressPage(WebDriver driver) {
-        this.driver = driver;
+    public DefaultAddressPage() {
+        this.driver = SingletonDriver.getInstance();
         PageFactory.initElements(driver, this);
     }
 
     public AddressBookPage openAddressBookPage(Address address) {
         fillDefaultAddressPage(address);
         saveAddressButton.click();
-        return new AddressBookPage(driver);
+        return new AddressBookPage();
     }
 
-    protected void fillDefaultAddressPage(Address address) {
-        inputPhoneNumber(address.getPhone());
-        inputStreet(address.getStreet());
-        inputCity(address.getCity());
-        inputZipCode(address.getZipCode());
+    private void fillDefaultAddressPage(Address address) {
+        ExplicitWait.getExplicitWait().until(ExpectedConditions.visibilityOf(phoneInput));
+        phoneInput.sendKeys(address.getPhone());
+        streetInput.sendKeys(address.getStreet());
+        cityInput.sendKeys(address.getCity());
+        zipCodeInput.sendKeys(address.getZipCode());
         selectCountry(address.getCountry());
-        if (driver.findElements(By.xpath("//div[contains(@class,'region')]//label[contains(@for,'id')]"))
+        if (SingletonDriver.getInstance().findElements(By.xpath("//div[contains(@class,'region')]//label[contains(@for,'id')]"))
                 .size() != 0) {
-            selectRegion();
+            selectRandomRegion();
         }
-    }
-
-    private void inputPhoneNumber(String phoneNumber) {
-        new WebDriverWait(driver, Duration.ofSeconds(Integer.parseInt(testData.getProperty("explicit.time"))))
-                .until(ExpectedConditions.visibilityOf(phoneInput));
-        phoneInput.sendKeys(phoneNumber);
-    }
-
-    private void inputStreet(String street) {
-        streetInput.sendKeys(street);
-    }
-
-    private void inputCity(String city) {
-        cityInput.sendKeys(city);
-    }
-
-    private void inputZipCode(String code) {
-        zipCodeInput.sendKeys(code);
     }
 
     private void selectCountry(String country) {
@@ -81,7 +61,7 @@ public class DefaultAddressPage {
         select.selectByVisibleText(country);
     }
 
-    private void selectRegion() {
+    private void selectRandomRegion() {
         Select select = new Select(regionSelect);
         List<WebElement> allRegions = select.getOptions();
         int size = allRegions.size();
@@ -89,7 +69,7 @@ public class DefaultAddressPage {
         select.selectByIndex(random);
     }
 
-    public Address getRandomAddress() {
+    public Address createRandomAddress() {
         Select select = new Select(countrySelect);
         List<WebElement> allCountries = select.getOptions();
         List<String> countries = new ArrayList<>();
@@ -99,9 +79,7 @@ public class DefaultAddressPage {
         int size = countries.size();
         int random = (int) (Math.random() * ++size);
         String country = countries.get(random);
-
         Faker faker = new Faker();
-
         return new Address(
                 faker.phoneNumber().cellPhone()
                 , faker.address().streetName()

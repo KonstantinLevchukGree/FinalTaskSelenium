@@ -17,41 +17,36 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-public class SingletonInstance {
-    private static SingletonInstance instance;
-    private WebDriver driver;
-    private final Properties testsData = PropertyUtil.getProperties("testsData.properties");
-    private final Properties sauceLab = PropertyUtil.getProperties("sauceLab.properties");
-    private final Properties chromeEnvironment = PropertyUtil.getProperties("chromeEnvironment.properties");
-    private final Properties firefoxEnvironment = PropertyUtil.getProperties("firefoxEnvironment.properties");
+public class SingletonDriver {
+    private static WebDriver driver;
+    private static final Properties testsData = PropertyUtil.getProperties("testsData.properties");
+    private static final Properties sauceLab = PropertyUtil.getProperties("sauceLab.properties");
+    private static final Properties chromeEnvironment = PropertyUtil.getProperties("chromeEnvironment.properties");
+    private static final Properties firefoxEnvironment = PropertyUtil.getProperties("firefoxEnvironment.properties");
 
-    private SingletonInstance() {
-    }
-
-    public static SingletonInstance getInstance() {
-        if (instance == null) {
-            instance = new SingletonInstance();
-        }
-        return instance;
+    private SingletonDriver() {
     }
 
     @SneakyThrows
-    public WebDriver getDriver() {
-        if (testsData.getProperty("environment").equals("local")) {
-            driver = getBrowserDriver(testsData.getProperty("browser"));
-            driver.manage().window().maximize();
-        } else if (testsData.getProperty("environment").equals("remote")) {
-            DesiredCapabilities capabilities = new DesiredCapabilities();
-            capabilities.setBrowserName(testsData.getProperty("browser"));
-            driver = new RemoteWebDriver(new URL(testsData.getProperty("hub.url")), capabilities);
-        } else if (testsData.getProperty("environment").equals("remoteSauceLabs")) {
-            authenticationSauceLab();
-            driver = getRemoteWebDriverBrowser(testsData.getProperty("browser"));
+    public static WebDriver getInstance() {
+        if (driver == null) {
+            if (testsData.getProperty("environment").equals("local")) {
+                driver = getBrowserDriver(testsData.getProperty("browser"));
+                driver.manage().window().maximize();
+            } else if (testsData.getProperty("environment").equals("remote")) {
+                DesiredCapabilities capabilities = new DesiredCapabilities();
+                capabilities.setBrowserName(testsData.getProperty("browser"));
+                driver = new RemoteWebDriver(new URL(testsData.getProperty("hub.url")), capabilities);
+            } else if (testsData.getProperty("environment").equals("remoteSauceLabs")) {
+                authenticationSauceLab();
+                driver = getRemoteWebDriverBrowser(testsData.getProperty("browser"));
+            }
+            System.out.println("SingletonDriver created.");
         }
         return driver;
     }
 
-    private WebDriver getBrowserDriver(String browser) {
+    private static WebDriver getBrowserDriver(String browser) {
         switch (browser) {
             case "chrome":
                 driver = new ChromeDriver();
@@ -65,7 +60,7 @@ public class SingletonInstance {
     }
 
     @SneakyThrows
-    private WebDriver getRemoteWebDriverBrowser(String browser) {
+    private static WebDriver getRemoteWebDriverBrowser(String browser) {
         switch (browser) {
             case "chrome":
                 driver = new RemoteWebDriver(new URL(sauceLab.getProperty("user.url")), setChromeOptions());
@@ -77,7 +72,7 @@ public class SingletonInstance {
         return driver;
     }
 
-    private ChromeOptions setChromeOptions() {
+    private static ChromeOptions setChromeOptions() {
         ChromeOptions browserOptions = new ChromeOptions();
         browserOptions.setPlatformName(chromeEnvironment.getProperty("platform"));
         browserOptions.setBrowserVersion(chromeEnvironment.getProperty("version"));
@@ -88,7 +83,7 @@ public class SingletonInstance {
         return browserOptions;
     }
 
-    private FirefoxOptions setFirefoxOptions() {
+    private static FirefoxOptions setFirefoxOptions() {
         FirefoxOptions browserOptions = new FirefoxOptions();
         browserOptions.setPlatformName(firefoxEnvironment.getProperty("platform"));
         browserOptions.setBrowserVersion(firefoxEnvironment.getProperty("version"));
@@ -99,7 +94,7 @@ public class SingletonInstance {
         return browserOptions;
     }
 
-    private String getTestAndClassName() {
+    private static String getTestAndClassName() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         String testName = null;
         for (StackTraceElement element : stackTrace
@@ -114,13 +109,13 @@ public class SingletonInstance {
         return testName;
     }
 
-    private void authenticationSauceLab() {
+    private static void authenticationSauceLab() {
         MutableCapabilities sauceOptions = new MutableCapabilities();
         sauceOptions.setCapability("username", System.getenv(sauceLab.getProperty("user.name")));
         sauceOptions.setCapability("access_key", System.getenv(sauceLab.getProperty("access.key")));
     }
 
-    public void quitAll() {
+    public static void quitAll() {
         driver.quit();
         driver = null;
     }

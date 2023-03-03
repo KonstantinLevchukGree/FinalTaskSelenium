@@ -8,12 +8,11 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import utils.property.PropertyUtil;
+import utils.singleton.SingletonDriver;
+import utils.webDriverWait.ExplicitWait;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Properties;
 
 public class ProductPage {
     private WebDriver driver;
@@ -23,18 +22,24 @@ public class ProductPage {
     WebElement productName;
     @FindBy(xpath = "//div[contains(@class,'info-main')]//span[@class='price']")
     WebElement productPrice;
-
     @FindBy(xpath = "//div[contains(@class,'size')]//div[contains(@class,'options')]")
     WebElement sizeOptions;
     @FindBy(xpath = "//div[contains(@class,'color')]//div[contains(@class,'options')]")
     WebElement colorOptions;
-    private By showCartAction = By.xpath("//a[(@class='action showcart')]");
-    private By editCartButton = By.xpath("//a[@class='action viewcart']");
-    private final Properties testData = PropertyUtil.getProperties("testsData.properties");
+    @FindBy(xpath = "//a[(@class='action showcart')]")
+    WebElement showCartAction;
+    @FindBy(xpath = "//a[@class='action viewcart']")
+    WebElement editCartButton;
+    private By options = By.xpath(".//div[contains(@class,'option')]");
+
+    public ProductPage() {
+        this.driver = SingletonDriver.getInstance();
+        PageFactory.initElements(driver, this);
+    }
 
     private void openMenu() {
-        new Actions(driver)
-                .moveToElement(driver.findElement(showCartAction))
+        new Actions(SingletonDriver.getInstance())
+                .moveToElement(showCartAction)
                 .pause(Duration.ofSeconds(1))
                 .click()
                 .perform();
@@ -42,34 +47,23 @@ public class ProductPage {
 
     public CartPage openCartPage() {
         openMenu();
-        new WebDriverWait(driver, Duration.ofSeconds(Integer.parseInt(testData.getProperty("explicit.time"))))
-                .until(ExpectedConditions.elementToBeClickable(editCartButton));
-        driver.findElement(editCartButton).click();
-        return new CartPage(driver);
+        ExplicitWait.getExplicitWait().until(ExpectedConditions.elementToBeClickable(editCartButton));
+        editCartButton.click();
+        return new CartPage();
     }
 
-    public ProductPage(WebDriver driver) {
-        this.driver = driver;
-        PageFactory.initElements(driver, this);
-    }
-
-    public ProductsPage backProductsPage() {
-        driver.navigate().back();
-        return new ProductsPage(driver);
+    public void backProductsPage() {
+        SingletonDriver.getInstance().navigate().back();
+        new ProductsPage();
     }
 
     public void addedProductToCart() {
-        new WebDriverWait(driver, Duration.ofSeconds(Integer.parseInt(testData.getProperty("explicit.time"))))
-                .until(ExpectedConditions.elementToBeClickable(addToCartButton));
+        ExplicitWait.getExplicitWait().until(ExpectedConditions.elementToBeClickable(addToCartButton));
         addToCartButton.click();
     }
 
     public ProductCart getProduct() {
-
-
-        new WebDriverWait(driver, Duration.ofSeconds(Integer.parseInt(testData.getProperty("explicit.time"))))
-                .until(ExpectedConditions.textToBePresentInElement(productPrice, "$"));
-
+        ExplicitWait.getExplicitWait().until(ExpectedConditions.textToBePresentInElement(productPrice, "$"));
         ProductCart product = new ProductCart();
         product.setSize(choiceRandomSize());
         product.setColor(choiceRandomColor());
@@ -79,7 +73,7 @@ public class ProductPage {
     }
 
     private String choiceRandomColor() {
-        List<WebElement> listColors = getColorOptions();
+        List<WebElement> listColors = colorOptions.findElements(options);
         int sizeList = listColors.size();
         int random = (int) (Math.random() * sizeList);
         WebElement color = listColors.get(random);
@@ -88,21 +82,12 @@ public class ProductPage {
     }
 
     private String choiceRandomSize() {
-        List<WebElement> listSizes = getSizeOption();
+        ExplicitWait.getExplicitWait().until(ExpectedConditions.visibilityOf(sizeOptions));
+        List<WebElement> listSizes = sizeOptions.findElements(options);
         int sizeList = listSizes.size();
         int random = (int) (Math.random() * sizeList);
         WebElement size = listSizes.get(random);
         size.click();
         return size.getText();
-    }
-
-    private List<WebElement> getSizeOption() {
-        new WebDriverWait(driver, Duration.ofSeconds(Integer.parseInt(testData.getProperty("explicit.time"))))
-                .until(ExpectedConditions.visibilityOf(sizeOptions));
-        return sizeOptions.findElements(By.xpath(".//div[contains(@class,'option')]"));
-    }
-
-    private List<WebElement> getColorOptions() {
-        return colorOptions.findElements(By.xpath(".//div[contains(@class,'option')]"));
     }
 }

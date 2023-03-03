@@ -18,6 +18,7 @@ public class TestResultExtension implements AfterTestExecutionCallback {
         boolean passed = context.getExecutionException().isPresent();
         String result = passed ? "FAILED" : "PASSED";
         if (result.equals("FAILED")) {
+            ScreenShotUtil.getSnapShot();
             ScreenShotUtil.attachScreenshot();
             Path content = Paths.get("src/test/resources/environment.properties");
             try (InputStream is = Files.newInputStream(content)) {

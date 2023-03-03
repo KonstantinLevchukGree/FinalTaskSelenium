@@ -1,11 +1,12 @@
 package magentoPage;
 
+import object.user.User;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
-import object.user.User;
 import utils.property.PropertyUtil;
+import utils.singleton.SingletonDriver;
 
 import java.util.Properties;
 
@@ -25,22 +26,10 @@ public class LoginPage {
     WebElement createAccountButton;
     private final Properties pageUrl = PropertyUtil.getProperties("pageUrl.properties");
 
-    public LoginPage(WebDriver driver) {
-        this.driver = driver;
+    public LoginPage() {
+        this.driver = SingletonDriver.getInstance();
         this.driver.get(pageUrl.getProperty("login.page"));
         PageFactory.initElements(driver, this);
-    }
-
-    private void inputFirstName(String firstName) {
-        firstNameInput.sendKeys(firstName);
-    }
-
-    private void inputLastName(String lastName) {
-        lastNameInput.sendKeys(lastName);
-    }
-
-    private void inputEmail(String email) {
-        emailInput.sendKeys(email);
     }
 
     private void inputAndConfirmationPassword(String password) {
@@ -49,11 +38,11 @@ public class LoginPage {
     }
 
     public AccountPage openAccountPage(User user) {
-        inputFirstName(user.getFirstName());
-        inputLastName(user.getLastName());
-        inputEmail(user.getEmail());
+        firstNameInput.sendKeys(user.getFirstName());
+        lastNameInput.sendKeys(user.getLastName());
+        emailInput.sendKeys(user.getEmail());
         inputAndConfirmationPassword(user.getPassword());
         createAccountButton.click();
-        return new AccountPage(driver);
+        return new AccountPage();
     }
 }

@@ -6,14 +6,15 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import utils.singleton.SingletonDriver;
 
 public class AddressBookPage {
     private WebDriver driver;
     @FindBy(xpath = "//div[contains(@class,'billing')]")
     WebElement billingBox;
 
-    public AddressBookPage(WebDriver driver) {
-        this.driver = driver;
+    public AddressBookPage() {
+        this.driver = SingletonDriver.getInstance();
         PageFactory.initElements(driver, this);
     }
 
